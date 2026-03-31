@@ -1,0 +1,419 @@
+cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chicken Escape - Fuga do Galinheiro</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Reset e configurações base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', 'Monaco', monospace;
+            background: linear-gradient(135deg, #1a472a 0%, #0a2a1a 100%);
+        }
+        
+        /* Container principal em grid */
+        .game-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: 1fr;
+            width: 100%;
+            height: 100%;
+            gap: 0;
+            background: #0a1a0a;
+        }
+        
+        /* Painel de informações (janela esquerda) */
+        .info-panel {
+            background: linear-gradient(180deg, #2d2a1a 0%, #1a1a0a 100%);
+            border-right: 4px solid #ffd700;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        
+        /* Área do jogo (janela direita) */
+        .game-area {
+            background: #1a2a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            cursor: none;
+            background-color: #2c3e50;
+        }
+        
+        /* Estilos do painel de informações */
+        .logo {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid #ffd700;
+        }
+        
+        .logo h1 {
+            font-size: 28px;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #8b4513;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: #ffaa44;
+            font-size: 12px;
+        }
+        
+        .stats-container {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            margin: 10px;
+            border-radius: 12px;
+            border: 1px solid #ffd700;
+        }
+        
+        .stat-card {
+            background: rgba(0,0,0,0.5);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            color: #ffd700;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            color: white;
+            font-size: 24px;
+            font-family: monospace;
+        }
+        
+        .players-section {
+            padding: 15px;
+            margin: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+        
+        .player-card {
+            background: rgba(0,0,0,0.5);
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .player1-card {
+            border-left-color: #FF6B6B;
+        }
+        
+        .player2-card {
+            border-left-color: #4ECDC4;
+        }
+        
+        .player-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .player-ability {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .controls-section {
+            padding: 15px;
+            margin: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+        
+        .control-group {
+            background: rgba(0,0,0,0.5);
+            margin: 8px 0;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+        
+        .control-group strong {
+            color: #ffd700;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .level-info {
+            padding: 15px;
+            margin: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .level-badge {
+            background: #ffd700;
+            color: #1a2a1a;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .enemy-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .enemy-badge {
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        /* Botões de ação */
+        .action-buttons {
+            padding: 15px;
+            margin-top: auto;
+        }
+        
+        .btn {
+            background: linear-gradient(180deg, #ffd700, #b8860b);
+            border: none;
+            padding: 12px;
+            width: 100%;
+            margin: 5px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+        }
+        
+        .btn-fullscreen {
+            background: linear-gradient(180deg, #4a4e69, #2a2e49);
+            color: white;
+        }
+        
+        /* Mensagens do jogo */
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: #ffd700;
+            padding: 20px 40px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+            border: 3px solid #ffd700;
+            white-space: nowrap;
+            pointer-events: none;
+            font-family: monospace;
+        }
+        
+        .game-message.hidden {
+            display: none;
+        }
+        
+        /* Scrollbar personalizada */
+        .info-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .info-panel::-webkit-scrollbar-track {
+            background: #1a1a0a;
+        }
+        
+        .info-panel::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 4px;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .game-container {
+                grid-template-columns: 260px 1fr;
+            }
+            
+            .logo h1 {
+                font-size: 20px;
+            }
+            
+            .stat-value {
+                font-size: 18px;
+            }
+            
+            .game-message {
+                font-size: 16px;
+                padding: 15px 30px;
+                white-space: normal;
+                width: 80%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+            
+            .info-panel {
+                border-right: none;
+                border-bottom: 4px solid #ffd700;
+                max-height: 40vh;
+            }
+        }
+        
+        /* Animações */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Painel Esquerdo - Informações do Jogo -->
+        <div class="info-panel">
+            <div class="logo">
+                <h1>🐔 CHICKEN ESCAPE</h1>
+                <p>Fuga do Galinheiro</p>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <span class="stat-label">📊 PONTUAÇÃO</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">⭐ FASE ATUAL</span>
+                    <span class="stat-value" id="level">1</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">🐔 GALINHAS LIBERTADAS</span>
+                    <span class="stat-value"><span id="rescued">0</span>/<span id="total">8</span></span>
+                </div>
+            </div>
+            
+            <div class="players-section">
+                <h3 style="color:#ffd700; margin-bottom:10px;">🎮 PERSONAGENS</h3>
+                <div class="player-card player1-card">
+                    <div class="player-name" style="color:#FF6B6B;">🐔 Galinha Ninja</div>
+                    <div>⚡ Velocidade: Alta</div>
+                    <div>🌀 Habilidade: Passa por espaços pequenos</div>
+                    <div class="player-ability">🔧 Especial: E</div>
+                </div>
+                <div class="player-card player2-card">
+                    <div class="player-name" style="color:#4ECDC4;">💪 Galinha Forte</div>
+                    <div>⚡ Velocidade: Média</div>
+                    <div>🌀 Habilidade: Quebra obstáculos</div>
+                    <div class="player-ability">🔧 Especial: Espaço</div>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <h3 style="color:#ffd700; margin-bottom:10px;">🎮 CONTROLES</h3>
+                <div class="control-group">
+                    <strong>🐔 Jogador 1 - Ninja</strong>
+                    W A S D → Movimento<br>
+                    E → Habilidade Especial
+                </div>
+                <div class="control-group">
+                    <strong>💪 Jogador 2 - Forte</strong>
+                    ↑ ↓ ← → → Movimento<br>
+                    Espaço → Habilidade Especial
+                </div>
+                <div class="control-group">
+                    <strong>⚙️ COMANDOS GERAIS</strong>
+                    ESC → Pausar<br>
+                    R → Reiniciar (Game Over)
+                </div>
+            </div>
+            
+            <div class="level-info" id="levelInfo">
+                <h3 style="color:#ffd700;">🐺 INIMIGO DA FASE</h3>
+                <div id="enemyDisplay">
+                    <div class="level-badge">Fase 1: Rex</div>
+                </div>
+                <div id="levelDescription" style="font-size:12px; margin-top:10px; color:#aaa;">
+                    Patrulha o mapa e late ao ver galinhas
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn" id="restartBtn">🔄 REINICIAR JOGO</button>
+                <button class="btn btn-fullscreen" id="fullscreenBtn">🖥️ TELA CHEIA</button>
+            </div>
+        </div>
+        
+        <!-- Painel Direito - Área do Jogo -->
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            <div id="gameMessages" class="game-message hidden"></div>
+        </div>
+    </div>
+    
+    <script src="config/game-config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/enemy.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+EOF
