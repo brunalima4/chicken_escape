@@ -1,13 +1,10 @@
-cat > index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Chicken Escape - Fuga do Galinheiro</title>
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Reset e configurações base */
         * {
             margin: 0;
             padding: 0;
@@ -23,7 +20,6 @@ cat > index.html << 'EOF'
             background: linear-gradient(135deg, #1a472a 0%, #0a2a1a 100%);
         }
         
-        /* Container principal em grid */
         .game-container {
             display: grid;
             grid-template-columns: 320px 1fr;
@@ -34,7 +30,6 @@ cat > index.html << 'EOF'
             background: #0a1a0a;
         }
         
-        /* Painel de informações (janela esquerda) */
         .info-panel {
             background: linear-gradient(180deg, #2d2a1a 0%, #1a1a0a 100%);
             border-right: 4px solid #ffd700;
@@ -45,7 +40,6 @@ cat > index.html << 'EOF'
             z-index: 10;
         }
         
-        /* Área do jogo (janela direita) */
         .game-area {
             background: #1a2a1a;
             display: flex;
@@ -63,7 +57,6 @@ cat > index.html << 'EOF'
             background-color: #2c3e50;
         }
         
-        /* Estilos do painel de informações */
         .logo {
             text-align: center;
             padding: 20px;
@@ -128,24 +121,13 @@ cat > index.html << 'EOF'
             border-left: 4px solid;
         }
         
-        .player1-card {
-            border-left-color: #FF6B6B;
-        }
-        
-        .player2-card {
-            border-left-color: #4ECDC4;
-        }
+        .player1-card { border-left-color: #FF6B6B; }
+        .player2-card { border-left-color: #4ECDC4; }
         
         .player-name {
             font-weight: bold;
             font-size: 16px;
             margin-bottom: 8px;
-        }
-        
-        .player-ability {
-            font-size: 11px;
-            color: #aaa;
-            margin-top: 5px;
         }
         
         .controls-section {
@@ -187,22 +169,6 @@ cat > index.html << 'EOF'
             margin: 5px;
         }
         
-        .enemy-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-            justify-content: center;
-        }
-        
-        .enemy-badge {
-            background: rgba(0,0,0,0.5);
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        
-        /* Botões de ação */
         .action-buttons {
             padding: 15px;
             margin-top: auto;
@@ -232,7 +198,6 @@ cat > index.html << 'EOF'
             color: white;
         }
         
-        /* Mensagens do jogo */
         .game-message {
             position: absolute;
             top: 50%;
@@ -252,38 +217,27 @@ cat > index.html << 'EOF'
             font-family: monospace;
         }
         
-        .game-message.hidden {
-            display: none;
+        .game-message.hidden { display: none; }
+        
+        .controller-status {
+            background: #000000aa;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
         }
         
-        /* Scrollbar personalizada */
-        .info-panel::-webkit-scrollbar {
-            width: 8px;
-        }
+        .controller-status.connected1 { color: #ff6b6b; background: #1a0000; }
+        .controller-status.connected2 { color: #4ecdc4; background: #001a1a; }
+        .controller-status.connected-both { color: #00ff00; background: #001a00; }
+        .controller-status.disconnected { color: #ff4444; background: #1a0000; }
         
-        .info-panel::-webkit-scrollbar-track {
-            background: #1a1a0a;
-        }
-        
-        .info-panel::-webkit-scrollbar-thumb {
-            background: #ffd700;
-            border-radius: 4px;
-        }
-        
-        /* Responsividade */
         @media (max-width: 768px) {
-            .game-container {
-                grid-template-columns: 260px 1fr;
-            }
-            
-            .logo h1 {
-                font-size: 20px;
-            }
-            
-            .stat-value {
-                font-size: 18px;
-            }
-            
+            .game-container { grid-template-columns: 260px 1fr; }
+            .logo h1 { font-size: 20px; }
+            .stat-value { font-size: 18px; }
             .game-message {
                 font-size: 16px;
                 padding: 15px 30px;
@@ -297,38 +251,16 @@ cat > index.html << 'EOF'
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
             }
-            
             .info-panel {
                 border-right: none;
                 border-bottom: 4px solid #ffd700;
                 max-height: 40vh;
             }
         }
-        
-        /* Animações */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
-        .pulse {
-            animation: pulse 0.5s ease-in-out;
-        }
-        
-        .shake {
-            animation: shake 0.3s ease-in-out;
-        }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <!-- Painel Esquerdo - Informações do Jogo -->
         <div class="info-panel">
             <div class="logo">
                 <h1>🐔 CHICKEN ESCAPE</h1>
@@ -348,6 +280,14 @@ cat > index.html << 'EOF'
                     <span class="stat-label">🐔 GALINHAS LIBERTADAS</span>
                     <span class="stat-value"><span id="rescued">0</span>/<span id="total">8</span></span>
                 </div>
+                <div class="stat-card">
+                    <span class="stat-label">❤️ JOGADOR 1 (Ninja)</span>
+                    <span class="stat-value" id="lives1">❤️❤️❤️</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">💪 JOGADOR 2 (Forte)</span>
+                    <span class="stat-value" id="lives2">❤️❤️❤️</span>
+                </div>
             </div>
             
             <div class="players-section">
@@ -356,13 +296,13 @@ cat > index.html << 'EOF'
                     <div class="player-name" style="color:#FF6B6B;">🐔 Galinha Ninja</div>
                     <div>⚡ Velocidade: Alta</div>
                     <div>🌀 Habilidade: Passa por espaços pequenos</div>
-                    <div class="player-ability">🔧 Especial: E</div>
+                    <div class="player-ability">🔧 Especial: E / Botão A</div>
                 </div>
                 <div class="player-card player2-card">
                     <div class="player-name" style="color:#4ECDC4;">💪 Galinha Forte</div>
                     <div>⚡ Velocidade: Média</div>
                     <div>🌀 Habilidade: Quebra obstáculos</div>
-                    <div class="player-ability">🔧 Especial: Espaço</div>
+                    <div class="player-ability">🔧 Especial: Espaço / Botão B</div>
                 </div>
             </div>
             
@@ -370,19 +310,23 @@ cat > index.html << 'EOF'
                 <h3 style="color:#ffd700; margin-bottom:10px;">🎮 CONTROLES</h3>
                 <div class="control-group">
                     <strong>🐔 Jogador 1 - Ninja</strong>
-                    W A S D → Movimento<br>
-                    E → Habilidade Especial
+                    Teclado: W A S D | E = Habilidade<br>
+                    Controle USB: D-Pad + Botão A
                 </div>
                 <div class="control-group">
                     <strong>💪 Jogador 2 - Forte</strong>
-                    ↑ ↓ ← → → Movimento<br>
-                    Espaço → Habilidade Especial
+                    Teclado: ↑ ↓ ← → | Espaço = Habilidade<br>
+                    Controle USB: D-Pad + Botão B
                 </div>
                 <div class="control-group">
-                    <strong>⚙️ COMANDOS GERAIS</strong>
-                    ESC → Pausar<br>
-                    R → Reiniciar (Game Over)
+                    <strong>🎮 COMANDOS USB GLOBAIS</strong>
+                    START → Iniciar/Pausar<br>
+                    SELECT → Reiniciar Jogo
                 </div>
+                <div id="controllerStatus" class="controller-status disconnected">
+                    ⚠️ NENHUM CONTROLE DETECTADO
+                </div>
+                <div id="controllerDebug" style="font-size: 10px; margin-top: 5px; color: #888; text-align: center;"></div>
             </div>
             
             <div class="level-info" id="levelInfo">
@@ -401,19 +345,1004 @@ cat > index.html << 'EOF'
             </div>
         </div>
         
-        <!-- Painel Direito - Área do Jogo -->
         <div class="game-area">
             <canvas id="gameCanvas"></canvas>
             <div id="gameMessages" class="game-message hidden"></div>
         </div>
     </div>
-    
-    <script src="config/game-config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/enemy.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/main.js"></script>
+
+    <script>
+        // ==================== CONFIGURAÇÕES ====================
+        const CONFIG = {
+            TILE_SIZE: 32,
+            MAP_WIDTH: 25,
+            MAP_HEIGHT: 15,
+            FPS: 60,
+            
+            LIVES: {
+                STARTING_LIVES: 3,
+                RESPAWN_DELAY: 2000,
+                INVINCIBILITY_DURATION: 3000
+            },
+            
+            CHARACTERS: {
+                NINJA: { name: 'Galinha Ninja', color: '#FF6B6B', speed: 5, ability: 'passThroughSmall', icon: '🐔' },
+                STRONG: { name: 'Galinha Forte', color: '#4ECDC4', speed: 3, ability: 'breakObstacles', icon: '💪' }
+            },
+            
+            ENEMIES: {
+                REX: { name: 'Rex', color: '#8B4513', speed: 1.2, behavior: 'patrol', icon: '🐕' },
+                SOMBRA: { name: 'Sombra', color: '#2F4F4F', speed: 2.5, behavior: 'fly', icon: '🦅' },
+                BIGODES: { name: 'Bigodes', color: '#696969', speed: 1.8, behavior: 'invisible', icon: '🐱' },
+                SIBILO: { name: 'Sibilo', color: '#228B22', speed: 2.0, behavior: 'corner', icon: '🐍' }
+            },
+            
+            LEVELS: {
+                1: { name: 'Rex, o Vigia', enemies: 2, chickens: 6, gates: 2, holes: 3, powerUps: 2, enemyType: 'rex', enemySpeedMultiplier: 1.0, description: '🐕 Rex patrulha a fazenda.' },
+                2: { name: 'Sombra (Mais Devagar)', enemies: 2, chickens: 8, gates: 3, holes: 4, powerUps: 3, enemyType: 'sombra', enemySpeedMultiplier: 0.6, description: '🦅 Sombra está mais lenta!' },
+                3: { name: 'Bigodes', enemies: 3, chickens: 10, gates: 4, holes: 5, powerUps: 4, enemyType: 'bigodes', enemySpeedMultiplier: 1.0, description: '🐱 Bigodes some e aparece!' },
+                4: { name: 'Sibilo', enemies: 2, chickens: 12, gates: 4, holes: 6, powerUps: 4, enemyType: 'sibilo', enemySpeedMultiplier: 1.0, description: '🐍 Sibilo bloqueia caminhos!' },
+                5: { name: 'Sr. Almeida', enemies: 1, chickens: 15, gates: 5, holes: 8, powerUps: 5, enemyType: 'rex', enemySpeedMultiplier: 1.2, description: '👨‍🌾 O dono da fazenda!' }
+            },
+            
+            SCORES: { RESCUE_CHICKEN: 100, COMPLETE_LEVEL: 500 }
+        };
+
+        // ==================== UTILITÁRIOS ====================
+        function checkCollision(obj1, obj2, radius = 0.7) {
+            return Math.hypot(obj1.x - obj2.x, obj1.y - obj2.y) < radius;
+        }
+        function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function randomRange(min, max) { return Math.random() * (max - min) + min; }
+        function clamp(value, min, max) { return Math.min(Math.max(value, min), max); }
+        
+        function showMessage(text, duration = 2000) {
+            const msg = document.getElementById('gameMessages');
+            if (msg) {
+                msg.textContent = text;
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), duration);
+            }
+        }
+
+        // ==================== CONTROLE USB (CORRIGIDO PARA 2 JOGADORES) ====================
+        class USBController {
+            constructor() {
+                // Mapeamento: porta USB -> jogador
+                this.portToPlayer = {};
+                this.playerToPort = { 1: null, 2: null };
+                
+                // Estados dos botões e eixos por jogador
+                this.buttons = { 1: {}, 2: {} };
+                this.axes = { 1: { x: 0, y: 0 }, 2: { x: 0, y: 0 } };
+                
+                // Mapeamento de botões USB
+                this.buttonMap = {
+                    0: 'A', 1: 'B', 2: 'X', 3: 'Y',
+                    4: 'L', 5: 'R', 6: 'SELECT', 7: 'START',
+                    12: 'UP', 13: 'DOWN', 14: 'LEFT', 15: 'RIGHT'
+                };
+                
+                this.init();
+            }
+            
+            init() {
+                console.log("USBController: Inicializando para 2 jogadores...");
+                
+                window.addEventListener('gamepadconnected', (e) => this.onConnect(e));
+                window.addEventListener('gamepaddisconnected', (e) => this.onDisconnect(e));
+                
+                // Escaneia controles já conectados
+                this.scan();
+                
+                // Loop de atualização
+                this.updateLoop();
+                
+                // Verificação periódica
+                setInterval(() => this.scan(), 2000);
+            }
+            
+            scan() {
+                const gamepads = navigator.getGamepads();
+                for (let i = 0; i < gamepads.length; i++) {
+                    if (gamepads[i] && this.portToPlayer[i] === undefined) {
+                        this.onConnect({ gamepad: gamepads[i] });
+                    }
+                }
+            }
+            
+            onConnect(e) {
+                const pad = e.gamepad;
+                const port = pad.index;
+                
+                console.log(`🎮 Controle conectado na porta USB ${port}: ${pad.id}`);
+                
+                // Verifica qual jogador está disponível
+                if (this.playerToPort[1] === null) {
+                    // Atribui ao Jogador 1
+                    this.portToPlayer[port] = 1;
+                    this.playerToPort[1] = port;
+                    console.log(`✅ Porta ${port} -> JOGADOR 1 (Galinha Ninja)`);
+                    showMessage(`🎮 Controle Jogador 1 conectado! Use D-Pad + A`, 3000);
+                    this.updateStatusDisplay();
+                } 
+                else if (this.playerToPort[2] === null) {
+                    // Atribui ao Jogador 2
+                    this.portToPlayer[port] = 2;
+                    this.playerToPort[2] = port;
+                    console.log(`✅ Porta ${port} -> JOGADOR 2 (Galinha Forte)`);
+                    showMessage(`🎮 Controle Jogador 2 conectado! Use D-Pad + B`, 3000);
+                    this.updateStatusDisplay();
+                }
+                else {
+                    console.log(`⚠️ Porta ${port} ignorada - já temos 2 jogadores`);
+                }
+            }
+            
+            onDisconnect(e) {
+                const pad = e.gamepad;
+                const port = pad.index;
+                const player = this.portToPlayer[port];
+                
+                console.log(`❌ Controle desconectado da porta USB ${port}, Jogador ${player}`);
+                
+                if (player === 1) {
+                    this.playerToPort[1] = null;
+                    this.buttons[1] = {};
+                    this.axes[1] = { x: 0, y: 0 };
+                    showMessage(`⚠️ Controle Jogador 1 desconectado!`, 2000);
+                } else if (player === 2) {
+                    this.playerToPort[2] = null;
+                    this.buttons[2] = {};
+                    this.axes[2] = { x: 0, y: 0 };
+                    showMessage(`⚠️ Controle Jogador 2 desconectado!`, 2000);
+                }
+                
+                delete this.portToPlayer[port];
+                this.updateStatusDisplay();
+            }
+            
+            update() {
+                const gamepads = navigator.getGamepads();
+                
+                // Atualiza estado de cada jogador
+                for (let player = 1; player <= 2; player++) {
+                    const port = this.playerToPort[player];
+                    if (port === null) continue;
+                    
+                    const pad = gamepads[port];
+                    if (!pad) continue;
+                    
+                    // Lê botões
+                    for (let i = 0; i < pad.buttons.length; i++) {
+                        const btnName = this.buttonMap[i];
+                        if (btnName) {
+                            const pressed = pad.buttons[i].pressed;
+                            const oldPressed = this.buttons[player][btnName] || false;
+                            
+                            if (pressed !== oldPressed) {
+                                this.buttons[player][btnName] = pressed;
+                                
+                                if (pressed) {
+                                    console.log(`🎮 Jogador ${player} apertou: ${btnName} (USB port ${port})`);
+                                    
+                                    // Dispara evento
+                                    window.dispatchEvent(new CustomEvent('usbButton', {
+                                        detail: { player: player, button: btnName }
+                                    }));
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Lê movimento (D-Pad + Analógico)
+                    let moveX = 0, moveY = 0;
+                    
+                    if (this.buttons[player]['LEFT']) moveX = -1;
+                    if (this.buttons[player]['RIGHT']) moveX = 1;
+                    if (this.buttons[player]['UP']) moveY = -1;
+                    if (this.buttons[player]['DOWN']) moveY = 1;
+                    
+                    if (moveX === 0 && pad.axes[0] && Math.abs(pad.axes[0]) > 0.2) {
+                        moveX = pad.axes[0];
+                    }
+                    if (moveY === 0 && pad.axes[1] && Math.abs(pad.axes[1]) > 0.2) {
+                        moveY = pad.axes[1];
+                    }
+                    
+                    this.axes[player] = { x: moveX, y: moveY };
+                }
+            }
+            
+            getMovement(player) {
+                return this.axes[player] || { x: 0, y: 0 };
+            }
+            
+            isButtonPressed(player, button) {
+                return this.buttons[player][button] === true;
+            }
+            
+            updateStatusDisplay() {
+                const statusDiv = document.getElementById('controllerStatus');
+                const debugDiv = document.getElementById('controllerDebug');
+                
+                if (!statusDiv) return;
+                
+                const has1 = this.playerToPort[1] !== null;
+                const has2 = this.playerToPort[2] !== null;
+                const port1 = this.playerToPort[1];
+                const port2 = this.playerToPort[2];
+                
+                if (has1 && has2) {
+                    statusDiv.innerHTML = `✅✅ DOIS CONTROLES CONECTADOS! ✅✅<br>Jogador 1: USB ${port1 !== null ? port1 + 1 : '?'} | Jogador 2: USB ${port2 !== null ? port2 + 1 : '?'}`;
+                    statusDiv.className = 'controller-status connected-both';
+                } else if (has1) {
+                    statusDiv.innerHTML = `✅ Controle Jogador 1 conectado (USB ${port1 !== null ? port1 + 1 : '?'})<br>⚠️ Conecte o segundo controle!`;
+                    statusDiv.className = 'controller-status connected1';
+                } else if (has2) {
+                    statusDiv.innerHTML = `✅ Controle Jogador 2 conectado (USB ${port2 !== null ? port2 + 1 : '?'})<br>⚠️ Conecte o primeiro controle!`;
+                    statusDiv.className = 'controller-status connected2';
+                } else {
+                    statusDiv.innerHTML = '❌ NENHUM CONTROLE DETECTADO<br>Conecte controles USB e pressione um botão!';
+                    statusDiv.className = 'controller-status disconnected';
+                }
+                
+                if (debugDiv) {
+                    const move1 = this.axes[1];
+                    const move2 = this.axes[2];
+                    debugDiv.innerHTML = `J1: (${move1.x.toFixed(2)}, ${move1.y.toFixed(2)}) | J2: (${move2.x.toFixed(2)}, ${move2.y.toFixed(2)})`;
+                }
+            }
+            
+            updateLoop() {
+                const loop = () => {
+                    this.update();
+                    this.updateStatusDisplay();
+                    requestAnimationFrame(loop);
+                };
+                loop();
+            }
+        }
+
+        // ==================== INIMIGO ====================
+        class Enemy {
+            constructor(x, y, type, game, speedMult = 1.0) {
+                this.x = x; this.y = y; this.type = type; this.game = game;
+                const cfg = CONFIG.ENEMIES[type.toUpperCase()];
+                this.name = cfg.name; this.color = cfg.color;
+                this.speed = cfg.speed * speedMult;
+                this.behavior = cfg.behavior;
+                this.patrolPoints = [];
+                this.patrolIndex = 0;
+                this.invisible = false;
+                this.invisibleTimer = 0;
+                
+                for (let i = 0; i < 4; i++) {
+                    this.patrolPoints.push({ x: randomInt(3, CONFIG.MAP_WIDTH-3), y: randomInt(3, CONFIG.MAP_HEIGHT-3) });
+                }
+            }
+            
+            update() {
+                const target = this.getTarget();
+                if (target && this.canSee(target)) this.moveTo(target);
+                else this.patrol();
+                
+                if (this.type === 'bigodes') {
+                    this.invisibleTimer++;
+                    if (this.invisibleTimer > 90) {
+                        this.invisible = !this.invisible;
+                        this.invisibleTimer = 0;
+                    }
+                }
+                
+                this.checkCollision();
+                this.x = clamp(this.x, 1, CONFIG.MAP_WIDTH - 1);
+                this.y = clamp(this.y, 1, CONFIG.MAP_HEIGHT - 1);
+            }
+            
+            getTarget() {
+                let closest = null, minDist = Infinity;
+                for (let p of this.game.players) {
+                    if (p && !p.isDead) {
+                        const d = Math.hypot(p.x - this.x, p.y - this.y);
+                        if (d < minDist) { minDist = d; closest = p; }
+                    }
+                }
+                return closest;
+            }
+            
+            canSee(target) { return Math.hypot(target.x - this.x, target.y - this.y) < 10; }
+            
+            moveTo(target) {
+                const dx = target.x - this.x, dy = target.y - this.y, dist = Math.hypot(dx, dy);
+                if (dist > 0.1) {
+                    const move = this.speed / CONFIG.FPS;
+                    this.x += (dx / dist) * move;
+                    this.y += (dy / dist) * move;
+                }
+            }
+            
+            patrol() {
+                const target = this.patrolPoints[this.patrolIndex];
+                const dx = target.x - this.x, dy = target.y - this.y;
+                if (Math.hypot(dx, dy) < 0.5) {
+                    this.patrolIndex = (this.patrolIndex + 1) % this.patrolPoints.length;
+                } else {
+                    const move = this.speed / CONFIG.FPS;
+                    this.x += (dx / Math.hypot(dx, dy)) * move;
+                    this.y += (dy / Math.hypot(dx, dy)) * move;
+                }
+            }
+            
+            checkCollision() {
+                for (let p of this.game.players) {
+                    if (p && !p.isDead && !p.invincible && checkCollision(this, p)) {
+                        p.die();
+                    }
+                }
+            }
+            
+            draw(ctx, ts) {
+                if (this.invisible && this.type === 'bigodes') {
+                    ctx.globalAlpha = 0.3;
+                }
+                
+                const x = this.x * ts - ts/2, y = this.y * ts - ts/2;
+                
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(x + ts/2, y + ts/2, ts/3, ts/2.5, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#FF4444';
+                ctx.beginPath();
+                ctx.arc(x + ts/2.5, y + ts/2.5, 3, 0, Math.PI*2);
+                ctx.arc(x + ts/1.5, y + ts/2.5, 3, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(x + ts/2.5, y + ts/2.5, 1.5, 0, Math.PI*2);
+                ctx.arc(x + ts/1.5, y + ts/2.5, 1.5, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // ==================== JOGADOR ====================
+        class Player {
+            constructor(x, y, type, playerId) {
+                this.id = playerId;
+                this.type = type;
+                this.x = x; this.y = y;
+                this.startX = x; this.startY = y;
+                this.playerId = playerId;
+                
+                const cfg = CONFIG.CHARACTERS[type.toUpperCase()];
+                this.speed = cfg.speed;
+                this.ability = cfg.ability;
+                this.color = cfg.color;
+                this.name = cfg.name;
+                
+                this.lives = CONFIG.LIVES.STARTING_LIVES;
+                this.isDead = false;
+                this.invincible = false;
+                this.invincibleTimer = 0;
+                this.respawnTime = 0;
+                this.rescueProgress = 0;
+                this.specialCooldown = 0;
+                
+                this.keys = { up: false, down: false, left: false, right: false };
+                this.initKeyboard();
+            }
+            
+            initKeyboard() {
+                const handlers = {
+                    '1': { up: 'w', down: 's', left: 'a', right: 'd', ability: 'e' },
+                    '2': { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', ability: ' ' }
+                };
+                
+                const myControls = handlers[this.playerId];
+                
+                const keyHandler = (e, value) => {
+                    if (e.key === myControls.up) this.keys.up = value;
+                    if (e.key === myControls.down) this.keys.down = value;
+                    if (e.key === myControls.left) this.keys.left = value;
+                    if (e.key === myControls.right) this.keys.right = value;
+                    if (e.key === myControls.ability && value) this.useAbility();
+                };
+                
+                window.addEventListener('keydown', (e) => keyHandler(e, true));
+                window.addEventListener('keyup', (e) => keyHandler(e, false));
+            }
+            
+            update(game, usbController) {
+                if (this.isDead) {
+                    if (this.respawnTime > 0 && Date.now() >= this.respawnTime) this.respawn();
+                    return;
+                }
+                
+                if (this.invincibleTimer > 0) {
+                    this.invincibleTimer--;
+                    this.invincible = true;
+                } else {
+                    this.invincible = false;
+                }
+                if (this.specialCooldown > 0) this.specialCooldown--;
+                
+                // Movimento: teclado + controle USB
+                let moveX = 0, moveY = 0;
+                if (this.keys.left) moveX = -1;
+                if (this.keys.right) moveX = 1;
+                if (this.keys.up) moveY = -1;
+                if (this.keys.down) moveY = 1;
+                
+                if (usbController) {
+                    const usbMove = usbController.getMovement(parseInt(this.playerId));
+                    if (moveX === 0 && Math.abs(usbMove.x) > 0.1) moveX = usbMove.x;
+                    if (moveY === 0 && Math.abs(usbMove.y) > 0.1) moveY = usbMove.y;
+                }
+                
+                if (moveX !== 0 || moveY !== 0) {
+                    const len = Math.hypot(moveX, moveY);
+                    moveX /= len; moveY /= len;
+                    let newX = this.x + moveX * this.speed / CONFIG.FPS;
+                    let newY = this.y + moveY * this.speed / CONFIG.FPS;
+                    if (this.canMove(newX, newY, game)) { this.x = newX; this.y = newY; }
+                }
+                
+                this.x = clamp(this.x, 0.8, CONFIG.MAP_WIDTH - 0.8);
+                this.y = clamp(this.y, 0.8, CONFIG.MAP_HEIGHT - 0.8);
+                
+                this.rescueChickens(game);
+            }
+            
+            canMove(x, y, game) {
+                const tx = Math.floor(x), ty = Math.floor(y);
+                if (tx < 0 || tx >= CONFIG.MAP_WIDTH || ty < 0 || ty >= CONFIG.MAP_HEIGHT) return false;
+                const tile = game.map[ty][tx];
+                if (this.ability === 'breakObstacles' && (tile === 1 || tile === 2)) {
+                    game.map[ty][tx] = 0;
+                    return true;
+                }
+                if (this.ability === 'passThroughSmall' && (tile === 1 || tile === 2)) return true;
+                return tile !== 1 && tile !== 3;
+            }
+            
+            useAbility() {
+                if (this.specialCooldown > 0 || this.isDead) return;
+                this.specialCooldown = 90;
+                showMessage(`✨ ${this.name} usou habilidade!`, 1000);
+            }
+            
+            rescueChickens(game) {
+                for (let c of game.cagedChickens) {
+                    if (!c.rescued && checkCollision(this, c)) {
+                        this.rescueProgress++;
+                        if (this.rescueProgress >= 100) {
+                            c.rescued = true;
+                            game.score += CONFIG.SCORES.RESCUE_CHICKEN;
+                            this.rescueProgress = 0;
+                            showMessage(`🐔 Galinha libertada! +${CONFIG.SCORES.RESCUE_CHICKEN}`, 1500);
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            die() {
+                if (this.invincible || this.isDead) return;
+                this.lives--;
+                this.isDead = true;
+                this.respawnTime = Date.now() + CONFIG.LIVES.RESPAWN_DELAY;
+                showMessage(`💀 ${this.name} morreu! Vidas: ${this.lives}`, 2000);
+                if (this.lives <= 0) showMessage(`😢 ${this.name} derrotado!`, 2000);
+            }
+            
+            respawn() {
+                if (this.lives <= 0) return;
+                this.isDead = false;
+                this.x = this.startX; this.y = this.startY;
+                this.invincibleTimer = CONFIG.LIVES.INVINCIBILITY_DURATION / (1000 / 60);
+                this.invincible = true;
+                this.respawnTime = 0;
+                showMessage(`✨ ${this.name} reviveu!`, 1500);
+            }
+            
+            draw(ctx, ts) {
+                if (this.isDead) {
+                    const x = this.x * ts - ts/2, y = this.y * ts - ts/2;
+                    ctx.fillStyle = '#FF0000';
+                    ctx.fillRect(x + 4, y + 4, ts - 8, ts - 8);
+                    ctx.fillStyle = '#FFF';
+                    ctx.font = `${ts}px monospace`;
+                    ctx.fillText("💀", x + ts/2 - 8, y + ts/2 + 8);
+                    return;
+                }
+                
+                if (this.invincible && (Date.now() % 200 < 100)) ctx.globalAlpha = 0.5;
+                
+                const x = this.x * ts - ts/2, y = this.y * ts - ts/2;
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(x + ts/2, y + ts - 4, ts/3, ts/6, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.ellipse(x + ts/2, y + ts/2, ts/3, ts/2.5, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#FFA500';
+                ctx.beginPath();
+                ctx.moveTo(x + ts/1.5, y + ts/2);
+                ctx.lineTo(x + ts/1.2, y + ts/2);
+                ctx.lineTo(x + ts/1.5, y + ts/1.8);
+                ctx.fill();
+                
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(x + ts/1.8, y + ts/2.5, 3, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#FF0000';
+                if (this.type === 'ninja') {
+                    ctx.fillRect(x + ts/3, y + ts/4, 5, 10);
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(x + ts/2.5, y + ts/2.8, 12, 3);
+                } else {
+                    ctx.fillRect(x + ts/3, y + ts/4, 8, 5);
+                }
+                
+                ctx.globalAlpha = 1;
+                
+                if (this.rescueProgress > 0) {
+                    ctx.fillStyle = '#00FF00';
+                    ctx.fillRect(x + 5, y - 5, (ts - 10) * (this.rescueProgress / 100), 4);
+                }
+                
+                ctx.fillStyle = '#FFF';
+                ctx.font = `bold ${Math.floor(ts / 3)}px monospace`;
+                ctx.fillText(`❤️ ${this.lives}`, x + 2, y - 8);
+                
+                ctx.fillStyle = '#FFD700';
+                ctx.font = `bold ${Math.floor(ts / 4)}px monospace`;
+                ctx.fillText(`P${this.playerId}`, x + ts - 18, y - 5);
+            }
+        }
+
+        // ==================== JOGO PRINCIPAL ====================
+        class Game {
+            constructor(usbController) {
+                this.usbController = usbController;
+                this.map = [];
+                this.players = [];
+                this.enemies = [];
+                this.cagedChickens = [];
+                this.powerUps = [];
+                this.currentLevel = 1;
+                this.score = 0;
+                this.gameState = 'menu';
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.init();
+            }
+            
+            init() {
+                this.generateMap();
+                this.initPlayers();
+                this.initEnemies();
+                this.initCagedChickens();
+                this.initPowerUps();
+                this.resizeCanvas();
+                this.updateUI();
+                this.updateLevelInfo();
+                console.log(`Jogo iniciado - Fase ${this.currentLevel}`);
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = CONFIG.MAP_WIDTH * CONFIG.TILE_SIZE;
+                this.canvas.height = CONFIG.MAP_HEIGHT * CONFIG.TILE_SIZE;
+            }
+            
+            generateMap() {
+                for (let i = 0; i < CONFIG.MAP_HEIGHT; i++) {
+                    this.map[i] = [];
+                    for (let j = 0; j < CONFIG.MAP_WIDTH; j++) {
+                        if (i === 0 || i === CONFIG.MAP_HEIGHT-1 || j === 0 || j === CONFIG.MAP_WIDTH-1) {
+                            this.map[i][j] = 1;
+                        } else if (Math.random() < 0.06) {
+                            this.map[i][j] = 2;
+                        } else {
+                            this.map[i][j] = 0;
+                        }
+                    }
+                }
+                
+                const lvl = CONFIG.LEVELS[this.currentLevel];
+                if (lvl) {
+                    for (let i = 0; i < lvl.gates; i++) {
+                        let x, y; do { x = randomInt(2, CONFIG.MAP_WIDTH-3); y = randomInt(2, CONFIG.MAP_HEIGHT-3); } while (this.map[y][x] !== 0);
+                        this.map[y][x] = 3;
+                    }
+                    for (let i = 0; i < lvl.holes; i++) {
+                        let x, y; do { x = randomInt(2, CONFIG.MAP_WIDTH-3); y = randomInt(2, CONFIG.MAP_HEIGHT-3); } while (this.map[y][x] !== 0);
+                        this.map[y][x] = 4;
+                    }
+                }
+            }
+            
+            initPlayers() {
+                this.players = [
+                    new Player(3, 3, 'ninja', '1'),
+                    new Player(CONFIG.MAP_WIDTH-4, CONFIG.MAP_HEIGHT-4, 'strong', '2')
+                ];
+            }
+            
+            initEnemies() {
+                this.enemies = [];
+                const lvl = CONFIG.LEVELS[this.currentLevel];
+                if (!lvl) return;
+                for (let i = 0; i < lvl.enemies; i++) {
+                    let x, y;
+                    do {
+                        x = randomInt(3, CONFIG.MAP_WIDTH-4);
+                        y = randomInt(3, CONFIG.MAP_HEIGHT-4);
+                    } while (this.map[y][x] !== 0);
+                    this.enemies.push(new Enemy(x, y, lvl.enemyType, this, lvl.enemySpeedMultiplier));
+                }
+            }
+            
+            initCagedChickens() {
+                this.cagedChickens = [];
+                const lvl = CONFIG.LEVELS[this.currentLevel];
+                const count = lvl?.chickens || 8;
+                for (let i = 0; i < count; i++) {
+                    let x, y;
+                    do {
+                        x = randomInt(2, CONFIG.MAP_WIDTH-3);
+                        y = randomInt(2, CONFIG.MAP_HEIGHT-3);
+                    } while (this.map[y][x] !== 0);
+                    this.cagedChickens.push({ x, y, rescued: false });
+                }
+                document.getElementById('total').textContent = count;
+            }
+            
+            initPowerUps() {
+                this.powerUps = [];
+                const lvl = CONFIG.LEVELS[this.currentLevel];
+                const count = lvl?.powerUps || 3;
+                for (let i = 0; i < count; i++) {
+                    let x, y;
+                    do {
+                        x = randomInt(2, CONFIG.MAP_WIDTH-3);
+                        y = randomInt(2, CONFIG.MAP_HEIGHT-3);
+                    } while (this.map[y][x] !== 0);
+                    this.powerUps.push({ x, y, collected: false });
+                }
+            }
+            
+            update() {
+                if (this.gameState !== 'playing') return;
+                
+                for (let p of this.players) p.update(this, this.usbController);
+                for (let e of this.enemies) e.update();
+                
+                const allDead = this.players.every(p => p.isDead && p.lives <= 0);
+                if (allDead) this.gameOver();
+                
+                this.checkVictory();
+                this.updateUI();
+            }
+            
+            checkVictory() {
+                if (this.cagedChickens.every(c => c.rescued)) {
+                    this.score += CONFIG.SCORES.COMPLETE_LEVEL;
+                    if (this.currentLevel >= 5) this.victory();
+                    else this.nextLevel();
+                }
+            }
+            
+            nextLevel() {
+                showMessage(`🎉 Fase ${this.currentLevel} completa!`, 2000);
+                this.currentLevel++;
+                this.init();
+            }
+            
+            victory() { this.gameState = 'victory'; showMessage("🏆 VITÓRIA! 🏆", 5000); }
+            gameOver() { this.gameState = 'gameOver'; showMessage("💀 GAME OVER!", 3000); }
+            
+            updateUI() {
+                const rescued = this.cagedChickens.filter(c => c.rescued).length;
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('level').textContent = this.currentLevel;
+                document.getElementById('rescued').textContent = rescued;
+                
+                const lives1 = this.players[0] ? '❤️'.repeat(this.players[0].lives) : '❤️';
+                const lives2 = this.players[1] ? '❤️'.repeat(this.players[1].lives) : '❤️';
+                document.getElementById('lives1').textContent = lives1 || '❤️';
+                document.getElementById('lives2').textContent = lives2 || '❤️';
+            }
+            
+            updateLevelInfo() {
+                const lvl = CONFIG.LEVELS[this.currentLevel];
+                if (!lvl) return;
+                const enemy = CONFIG.ENEMIES[lvl.enemyType.toUpperCase()];
+                document.getElementById('enemyDisplay').innerHTML = `<div class="level-badge">${enemy?.icon || '🐕'} Fase ${this.currentLevel}: ${lvl.name}</div>`;
+                document.getElementById('levelDescription').textContent = lvl.description;
+            }
+            
+            draw() {
+                if (!this.ctx) return;
+                this.drawMap();
+                this.drawPowerUps();
+                this.drawCagedChickens();
+                for (let e of this.enemies) e.draw(this.ctx, CONFIG.TILE_SIZE);
+                for (let p of this.players) p.draw(this.ctx, CONFIG.TILE_SIZE);
+            }
+            
+            drawMap() {
+                for (let i = 0; i < CONFIG.MAP_HEIGHT; i++) {
+                    for (let j = 0; j < CONFIG.MAP_WIDTH; j++) {
+                        const x = j * CONFIG.TILE_SIZE, y = i * CONFIG.TILE_SIZE;
+                        const colors = { 1: '#8B4513', 2: '#F4A460', 3: '#A0522D', 4: '#000000' };
+                        this.ctx.fillStyle = colors[this.map[i][j]] || '#90EE90';
+                        this.ctx.fillRect(x, y, CONFIG.TILE_SIZE - 1, CONFIG.TILE_SIZE - 1);
+                        
+                        if (this.map[i][j] === 1) {
+                            this.ctx.fillStyle = '#5D3A1A';
+                            for (let k = 0; k < 2; k++) this.ctx.fillRect(x + 8, y + 8 + k*12, CONFIG.TILE_SIZE - 16, 2);
+                        }
+                        if (this.map[i][j] === 4) {
+                            this.ctx.fillStyle = '#222';
+                            this.ctx.beginPath();
+                            this.ctx.arc(x + CONFIG.TILE_SIZE/2, y + CONFIG.TILE_SIZE/2, 8, 0, Math.PI*2);
+                            this.ctx.fill();
+                        }
+                    }
+                }
+            }
+            
+            drawCagedChickens() {
+                for (let c of this.cagedChickens) {
+                    if (!c.rescued) {
+                        const x = c.x * CONFIG.TILE_SIZE, y = c.y * CONFIG.TILE_SIZE;
+                        
+                        this.ctx.fillStyle = '#AAAAAA';
+                        this.ctx.strokeStyle = '#666';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.strokeRect(x + 4, y + 4, CONFIG.TILE_SIZE - 8, CONFIG.TILE_SIZE - 8);
+                        
+                        this.ctx.fillStyle = '#FFD700';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(x + CONFIG.TILE_SIZE/2, y + CONFIG.TILE_SIZE/2, 8, 10, 0, 0, Math.PI*2);
+                        this.ctx.fill();
+                        
+                        this.ctx.fillStyle = '#000';
+                        this.ctx.beginPath();
+                        this.ctx.arc(x + CONFIG.TILE_SIZE/2 - 4, y + CONFIG.TILE_SIZE/2 - 2, 2, 0, Math.PI*2);
+                        this.ctx.arc(x + CONFIG.TILE_SIZE/2 + 4, y + CONFIG.TILE_SIZE/2 - 2, 2, 0, Math.PI*2);
+                        this.ctx.fill();
+                        
+                        this.ctx.fillStyle = '#FF6600';
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x + CONFIG.TILE_SIZE/2, y + CONFIG.TILE_SIZE/2 + 2);
+                        this.ctx.lineTo(x + CONFIG.TILE_SIZE/2 + 4, y + CONFIG.TILE_SIZE/2 + 6);
+                        this.ctx.lineTo(x + CONFIG.TILE_SIZE/2 - 4, y + CONFIG.TILE_SIZE/2 + 6);
+                        this.ctx.fill();
+                        
+                        this.ctx.fillStyle = '#3399FF';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(x + CONFIG.TILE_SIZE/2 - 6, y + CONFIG.TILE_SIZE/2 + 4, 2, 3, 0, 0, Math.PI*2);
+                        this.ctx.fill();
+                        
+                        this.ctx.fillStyle = '#FF0000';
+                        this.ctx.font = `bold ${Math.floor(CONFIG.TILE_SIZE / 4)}px monospace`;
+                        this.ctx.fillText("AJUDA!", x + 4, y - 4);
+                    }
+                }
+            }
+            
+            drawPowerUps() {
+                for (let pu of this.powerUps) {
+                    if (!pu.collected) {
+                        const x = pu.x * CONFIG.TILE_SIZE, y = pu.y * CONFIG.TILE_SIZE;
+                        this.ctx.fillStyle = '#FFD700';
+                        this.ctx.beginPath();
+                        this.ctx.ellipse(x + CONFIG.TILE_SIZE/2, y + CONFIG.TILE_SIZE/2, 10, 12, 0, 0, Math.PI*2);
+                        this.ctx.fill();
+                        this.ctx.fillStyle = '#FFF';
+                        this.ctx.font = `16px monospace`;
+                        this.ctx.fillText("⭐", x + CONFIG.TILE_SIZE/2 - 6, y + CONFIG.TILE_SIZE/2 + 6);
+                    }
+                }
+            }
+            
+            restart() {
+                this.currentLevel = 1;
+                this.score = 0;
+                this.gameState = 'playing';
+                this.init();
+            }
+        }
+
+        // ==================== INICIALIZAÇÃO ====================
+        let game, usbController, animationId;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("=== CHICKEN ESCAPE ===");
+            console.log("Inicializando jogo com suporte a 2 controles USB...");
+            
+            usbController = new USBController();
+            window.usbController = usbController;
+            
+            game = new Game(usbController);
+            window.game = game;
+            
+            setupEvents();
+            startLoop();
+            showMenuScreen();
+            
+            console.log("Jogo pronto! Conecte os controles USB nas portas desejadas!");
+            console.log("O primeiro controle conectado será o Jogador 1, o segundo será o Jogador 2");
+        });
+        
+        function setupEvents() {
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && game.gameState === 'menu') startGame();
+                if (e.key === 'r' && game.gameState === 'gameOver') restartGame();
+                if (e.key === 'Escape') togglePause();
+            });
+            
+            window.addEventListener('usbButton', (e) => {
+                console.log(`[EVENTO] Jogador ${e.detail.player} - Botão ${e.detail.button}`);
+                
+                // Comandos globais (apenas START e SELECT)
+                if (e.detail.button === 'START') {
+                    if (game.gameState === 'menu') startGame();
+                    else if (game.gameState === 'playing') togglePause();
+                    else if (game.gameState === 'paused') togglePause();
+                    else if (game.gameState === 'gameOver') restartGame();
+                }
+                if (e.detail.button === 'SELECT' && game.gameState !== 'menu') {
+                    restartGame();
+                }
+            });
+            
+            document.getElementById('restartBtn')?.addEventListener('click', () => restartGame());
+            document.getElementById('fullscreenBtn')?.addEventListener('click', () => {
+                document.querySelector('.game-container').requestFullscreen();
+            });
+        }
+        
+        function startLoop() {
+            function loop() {
+                if (game.gameState === 'playing') {
+                    game.update();
+                    game.draw();
+                } else if (game.gameState === 'paused') {
+                    game.draw();
+                    drawPaused();
+                } else if (game.gameState === 'menu') {
+                    drawMenu();
+                } else if (game.gameState === 'gameOver') {
+                    drawGameOver();
+                } else if (game.gameState === 'victory') {
+                    drawVictory();
+                }
+                animationId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+        
+        function startGame() { 
+            game.gameState = 'playing'; 
+            game.restart(); 
+            showMessage("🐔 Vamos fugir! Liberte as galinhas!", 2000); 
+        }
+        
+        function restartGame() { 
+            game.restart(); 
+            game.gameState = 'playing'; 
+        }
+        
+        function togglePause() { 
+            game.gameState = game.gameState === 'playing' ? 'paused' : 'playing'; 
+            showMessage(game.gameState === 'paused' ? "⏸ PAUSADO" : "▶ JOGANDO", 1000); 
+        }
+        
+        function showMenuScreen() { game.gameState = 'menu'; }
+        
+        function drawMenu() {
+            const ctx = game.ctx, w = game.canvas.width, h = game.canvas.height;
+            ctx.fillStyle = 'rgba(0,0,0,0.85)';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#FFD700';
+            ctx.font = `bold ${Math.floor(w/20)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.fillText("🐔 CHICKEN ESCAPE", w/2, h/2 - 80);
+            ctx.fillStyle = '#FFF';
+            ctx.font = `${Math.floor(w/30)}px monospace`;
+            ctx.fillText("Fuga do Galinheiro", w/2, h/2 - 30);
+            ctx.font = `${Math.floor(w/40)}px monospace`;
+            ctx.fillStyle = '#AAA';
+            ctx.fillText("Pressione ENTER ou START no controle", w/2, h/2 + 40);
+            ctx.fillText("Jogador 1: WASD | Jogador 2: SETAS", w/2, h/2 + 90);
+            ctx.fillText("Controles USB: Conecte e aperte START", w/2, h/2 + 140);
+            
+            const has1 = usbController.playerToPort[1] !== null;
+            const has2 = usbController.playerToPort[2] !== null;
+            const port1 = usbController.playerToPort[1];
+            const port2 = usbController.playerToPort[2];
+            
+            ctx.fillStyle = has1 ? '#00FF00' : '#FF4444';
+            ctx.fillText(`Jogador 1 USB: ${has1 ? `✅ CONECTADO (USB ${port1 !== null ? port1 + 1 : '?'})` : '❌ DESCONECTADO'}`, w/2, h/2 + 190);
+            ctx.fillStyle = has2 ? '#00FF00' : '#FF4444';
+            ctx.fillText(`Jogador 2 USB: ${has2 ? `✅ CONECTADO (USB ${port2 !== null ? port2 + 1 : '?'})` : '❌ DESCONECTADO'}`, w/2, h/2 + 220);
+            
+            ctx.textAlign = 'left';
+        }
+        
+        function drawPaused() {
+            const ctx = game.ctx, w = game.canvas.width, h = game.canvas.height;
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#FFD700';
+            ctx.font = `bold ${Math.floor(w/20)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.fillText("⏸ PAUSADO", w/2, h/2);
+            ctx.fillStyle = '#FFF';
+            ctx.font = `${Math.floor(w/30)}px monospace`;
+            ctx.fillText("Pressione ESC ou START", w/2, h/2 + 50);
+            ctx.textAlign = 'left';
+        }
+        
+        function drawGameOver() {
+            const ctx = game.ctx, w = game.canvas.width, h = game.canvas.height;
+            ctx.fillStyle = 'rgba(0,0,0,0.9)';
+            ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#FF4444';
+            ctx.font = `bold ${Math.floor(w/20)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.fillText("💀 GAME OVER 💀", w/2, h/2 - 50);
+            ctx.fillStyle = '#FFF';
+            ctx.font = `${Math.floor(w/30)}px monospace`;
+            ctx.fillText(`Pontuação: ${game.score}`, w/2, h/2 + 20);
+            ctx.fillStyle = '#AAA';
+            ctx.font = `${Math.floor(w/40)}px monospace`;
+            ctx.fillText("Pressione R ou SELECT", w/2, h/2 + 100);
+            ctx.textAlign = 'left';
+        }
+        
+        function drawVictory() {
+            const ctx = game.ctx, w = game.canvas.width, h = game.canvas.height;
+            ctx.fillStyle = 'rgba(0,0,0,0.9)';
+            ctx.fillRect(0, 0, w, h);
+            for (let i = 0; i < 30; i++) {
+                ctx.fillStyle = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                ctx.beginPath();
+                ctx.arc(Math.random() * w, Math.random() * h, 3, 0, Math.PI*2);
+                ctx.fill();
+            }
+            ctx.fillStyle = '#FFD700';
+            ctx.font = `bold ${Math.floor(w/20)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.fillText("🏆 VITÓRIA! 🏆", w/2, h/2 - 50);
+            ctx.fillStyle = '#FFF';
+            ctx.font = `${Math.floor(w/25)}px monospace`;
+            ctx.fillText("TODAS AS GALINHAS FORAM LIBERTADAS!", w/2, h/2 + 20);
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText(`Pontuação Final: ${game.score}`, w/2, h/2 + 80);
+            ctx.textAlign = 'left';
+        }
+        
+        console.log("=== JOGO PRONTO ===");
+        console.log("Instruções:");
+        console.log("1. Conecte o PRIMEIRO controle USB -> será Jogador 1 (Galinha Ninja)");
+        console.log("2. Conecte o SEGUNDO controle USB -> será Jogador 2 (Galinha Forte)");
+        console.log("3. Pressione START em qualquer controle para começar!");
+    </script>
 </body>
 </html>
-EOF

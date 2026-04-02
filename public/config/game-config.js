@@ -1,4 +1,3 @@
-
 // Configurações Globais do Jogo
 const CONFIG = {
     TILE_SIZE: 32,
@@ -6,12 +5,37 @@ const CONFIG = {
     MAP_HEIGHT: 15,
     FPS: 60,
     
+    // Configurações de dificuldade por fase
+    DIFFICULTY: {
+        1: { enemySpeed: 1.2, enemyCount: 2 },
+        2: { enemySpeed: 0.8, enemyCount: 2 },
+        3: { enemySpeed: 1.5, enemyCount: 3 },
+        4: { enemySpeed: 1.8, enemyCount: 2 },
+        5: { enemySpeed: 2.0, enemyCount: 1 }
+    },
+    
+    // Sistema de vidas
+    LIVES: {
+        STARTING_LIVES: 1,
+        RESPAWN_DELAY: 2000,
+        INVINCIBILITY_DURATION: 3000
+    },
+    
     CANVAS: {
         calculateSize: function() {
             const container = document.querySelector('.game-area');
             if (container) {
                 const maxWidth = container.clientWidth - 40;
                 const maxHeight = container.clientHeight - 40;
+                
+                if (window.isRaspberryPi && window.isRaspberryPi()) {
+                    return {
+                        width: 800,
+                        height: 480,
+                        scale: 1
+                    };
+                }
+                
                 const tileBasedWidth = this.MAP_WIDTH * this.TILE_SIZE;
                 const tileBasedHeight = this.MAP_HEIGHT * this.TILE_SIZE;
                 
@@ -45,7 +69,8 @@ const CONFIG = {
             speed: 5,
             ability: 'passThroughSmall',
             description: 'Rápida, passa por espaços pequenos',
-            icon: '🐔'
+            icon: '🐔',
+            respawnPosition: { x: 2, y: 2 }
         },
         STRONG: {
             name: 'Galinha Forte',
@@ -53,7 +78,8 @@ const CONFIG = {
             speed: 3,
             ability: 'breakObstacles',
             description: 'Quebra obstáculos',
-            icon: '💪'
+            icon: '💪',
+            respawnPosition: { x: -1, y: -1 }
         }
     },
     
@@ -106,10 +132,11 @@ const CONFIG = {
             powerUps: 2, 
             difficulty: 'basic',
             enemyType: 'rex',
-            description: '🐕 Rex patrulha a fazenda. Use a velocidade da Ninja e a força da Galinha Forte para libertar suas amigas!'
+            enemySpeedMultiplier: 1.0,
+            description: '🐕 Rex patrulha a fazenda.'
         },
         2: { 
-            name: 'Sombra, o Caçador', 
+            name: 'Sombra, o Caçador (Mais Devagar)', 
             enemies: 2, 
             chickens: 8, 
             gates: 3, 
@@ -117,7 +144,8 @@ const CONFIG = {
             powerUps: 3, 
             difficulty: 'medium',
             enemyType: 'sombra',
-            description: '🦅 Sombra ataca do céu! Fique atento aos mergulhos rápidos.'
+            enemySpeedMultiplier: 0.6,
+            description: '🦅 Sombra está mais lenta nesta fase!'
         },
         3: { 
             name: 'Bigodes, o Silencioso', 
@@ -128,7 +156,8 @@ const CONFIG = {
             powerUps: 4, 
             difficulty: 'medium',
             enemyType: 'bigodes',
-            description: '🐱 Bigodes some e aparece! Trabalhe em equipe para localizá-lo.'
+            enemySpeedMultiplier: 1.0,
+            description: '🐱 Bigodes some e aparece!'
         },
         4: { 
             name: 'Sibilo, a Cobra', 
@@ -139,7 +168,8 @@ const CONFIG = {
             powerUps: 4, 
             difficulty: 'high',
             enemyType: 'sibilo',
-            description: '🐍 Sibilo bloqueia os caminhos. Encontre rotas alternativas pelos buracos!'
+            enemySpeedMultiplier: 1.0,
+            description: '🐍 Sibilo bloqueia os caminhos.'
         },
         5: { 
             name: 'Sr. Almeida - O Final', 
@@ -150,7 +180,8 @@ const CONFIG = {
             powerUps: 5, 
             difficulty: 'boss',
             enemyType: 'rex',
-            description: '👨‍🌾 O dono da fazenda está furioso! Liberte todas as galinhas e fujam juntos!'
+            enemySpeedMultiplier: 1.2,
+            description: '👨‍🌾 O dono da fazenda está furioso!'
         }
     },
     

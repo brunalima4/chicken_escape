@@ -1,96 +1,336 @@
-// Funções Utilitárias
-
-// Verifica colisão entre dois objetos
-function checkCollision(obj1, obj2, radius = 0.8) {
-    const dx = obj1.x - obj2.x;
-    const dy = obj1.y - obj2.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < radius;
-}
-
-// Gera número aleatório entre min e max
-function randomRange(min, max) {
-    return Math.random() * (max - min) + min;
-}
-
-// Gera inteiro aleatório entre min e max (inclusive)
-function randomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// Clamp de valores
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-
-// Mostra mensagem temporária
-function showMessage(text, duration = 2000) {
-    const msgDiv = document.getElementById('gameMessages');
-    if (!msgDiv) return;
-    
-    msgDiv.textContent = text;
-    msgDiv.classList.remove('hidden');
-    
-    setTimeout(() => {
-        msgDiv.classList.add('hidden');
-    }, duration);
-}
-
-// Efeito de animação em elemento
-function animateElement(element, animation) {
-    if (!element) return;
-    element.classList.add(animation);
-    setTimeout(() => {
-        element.classList.remove(animation);
-    }, 500);
-}
-
-// Salva progresso no localStorage
-function saveProgress(level, score) {
-    const progress = {
-        level: level,
-        score: score,
-        date: new Date().toISOString()
-    };
-    localStorage.setItem('chickenEscape_progress', JSON.stringify(progress));
-}
-
-// Carrega progresso do localStorage
-function loadProgress() {
-    const saved = localStorage.getItem('chickenEscape_progress');
-    if (saved) {
-        return JSON.parse(saved);
+class Player {
+    constructor(x, y, type, playerId, controls) {
+        this.id = playerId;
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.startX = x;
+        this.startY = y;
+        this.playerId = playerId;
+        this.controls = controls;
+        
+        // Sistema de vidas
+        this.lives = CONFIG.LIVES.STARTING_LIVES;
+        this.isDead = false;
+        this.respawnTimer = 0;
+        this.invincibleTimer = 0;
+        this.deathAnimation = 0;
+        this.respawnTime = 0;
+        
+        const charConfig = CONFIG.CHARACTERS[type.toUpperCase()];
+        this.speed = charConfig.speed;
+        this.ability = charConfig.ability;
+        this.color = charConfig.color;
+        this.name = charConfig.name;
+        
+        // Teclas (para teclado)
+        this.keys = {
+            up: false, down: false, left: false, right: false, ability: false
+        };
+        
+        // Controle (para USB)
+        this.controllerMove = { x: 0, y: 0 };
+        this.controllerAbility = false;
+        
+        this.specialCooldown = 0;
+        this.rescueProgress = 0;
+        this.isUsingAbility = false;
+        this.invincible = false;
+        
+        this.initControls();
+        this.initControllerSupport();
     }
-    return null;
-}
-
-// Verifica se é Raspberry Pi (para otimizações)
-function isRaspberryPi() {
-    const platform = navigator.platform.toLowerCase();
-    return platform.includes('arm') || platform.includes('linux');
-}
-
-// Otimizações para Chrome
-function optimizeForChrome() {
-    // Chrome já é otimizado, mas podemos ajustar algumas coisas
-    const canvas = document.getElementById('gameCanvas');
-    if (canvas) {
-        // Usa aceleração de hardware
-        canvas.style.transform = 'translateZ(0)';
-        canvas.style.willChange = 'transform';
+    
+    initControllerSupport() {
+        // Escuta eventos de movimento do controle
+        window.addEventListener('snesaxis', (e) => {
+            if (e.detail.player === `player${this.playerId}`) {
+                this.controllerMove.x = e.detail.x;
+                this.controllerMove.y = e.detail.y;
+            }
+        });
+        
+        // Escuta eventos de botão do controle
+        window.addEventListener('snesbutton', (e) => {
+            if (e.detail.player === `player${this.playerId}`) {
+                if (e.detail.pressed) {
+                    if ((this.playerId === '1' && e.detail.button === 'A') ||
+                        (this.playerId === '2' && e.detail.button === 'B')) {
+                        this.controllerAbility = true;
+                    }
+                } else {
+                    if ((this.playerId === '1' && e.detail.button === 'A') ||
+                        (this.playerId === '2' && e.detail.button === 'B')) {
+                        this.controllerAbility = false;
+                    }
+                }
+            }
+        });
+        
+        // Fallback: polling para movimento caso eventos não funcionem
+        this.pollingInterval = setInterval(() => {
+            if (window.snesController) {
+                const move = window.snesController.getPlayerMovement(this.playerId);
+                if (move.x !== 0 || move.y !== 0) {
+                    this.controllerMove = move;
+                }
+            }
+        }, 16); // ~60 FPS
+    }
+    
+    initControls() {
+        const keyHandler = (e, value) => {
+            if (Object.values(this.controls).includes(e.key)) {
+                e.preventDefault();
+            }
+            
+            switch(e.key) {
+                case this.controls.up: this.keys.up = value; break;
+                case this.controls.down: this.keys.down = value; break;
+                case this.controls.left: this.keys.left = value; break;
+                case this.controls.right: this.keys.right = value; break;
+                case this.controls.ability:
+                    if (value) this.useAbility();
+                    break;
+            }
+        };
+        
+        window.addEventListener('keydown', (e) => keyHandler(e, true));
+        window.addEventListener('keyup', (e) => keyHandler(e, false));
+    }
+    
+    update(game) {
+        // Se estiver morto, só processa respawn
+        if (this.isDead) {
+            this.deathAnimation++;
+            if (this.respawnTime > 0 && Date.now() >= this.respawnTime) {
+                this.respawn();
+            }
+            return;
+        }
+        
+        // Atualiza invencibilidade
+        if (this.invincibleTimer > 0) {
+            this.invincibleTimer--;
+            this.invincible = true;
+        } else {
+            this.invincible = false;
+        }
+        
+        // Processa habilidade do controle
+        if (this.controllerAbility) {
+            this.useAbility();
+            this.controllerAbility = false;
+        }
+        
+        // Combina movimento do teclado e controle
+        let moveX = 0, moveY = 0;
+        
+        // Teclado (prioridade)
+        if (this.keys.left) moveX = -1;
+        if (this.keys.right) moveX = 1;
+        if (this.keys.up) moveY = -1;
+        if (this.keys.down) moveY = 1;
+        
+        // Controle (se teclado não está sendo usado)
+        if (moveX === 0 && Math.abs(this.controllerMove.x) > 0.1) {
+            moveX = this.controllerMove.x;
+        }
+        if (moveY === 0 && Math.abs(this.controllerMove.y) > 0.1) {
+            moveY = this.controllerMove.y;
+        }
+        
+        // Aplica movimento
+        if (moveX !== 0 || moveY !== 0) {
+            const len = Math.sqrt(moveX * moveX + moveY * moveY);
+            if (len > 0) {
+                moveX /= len;
+                moveY /= len;
+            }
+            
+            let newX = this.x + moveX * this.speed / CONFIG.FPS;
+            let newY = this.y + moveY * this.speed / CONFIG.FPS;
+            
+            if (this.canMoveTo(newX, newY, game)) {
+                this.x = newX;
+                this.y = newY;
+            }
+        }
+        
+        this.x = clamp(this.x, 0.5, CONFIG.MAP_WIDTH - 0.5);
+        this.y = clamp(this.y, 0.5, CONFIG.MAP_HEIGHT - 0.5);
+        
+        if (this.specialCooldown > 0) this.specialCooldown--;
+        
+        this.interactWithChickens(game);
+    }
+    
+    die() {
+        if (this.invincible) return;
+        if (this.isDead) return;
+        
+        this.lives--;
+        this.isDead = true;
+        this.deathAnimation = 0;
+        this.respawnTime = Date.now() + CONFIG.LIVES.RESPAWN_DELAY;
+        
+        Utils.showMessage(`💀 ${this.name} morreu! Vidas restantes: ${this.lives}`, 2000);
+        
+        if (this.lives <= 0) {
+            Utils.showMessage(`😢 ${this.name} foi derrotado permanentemente!`, 3000);
+            this.respawnTime = 0;
+        }
+    }
+    
+    respawn() {
+        if (this.lives <= 0) return;
+        
+        this.isDead = false;
+        this.x = this.startX;
+        this.y = this.startY;
+        this.invincibleTimer = CONFIG.LIVES.INVINCIBILITY_DURATION / (1000 / 60);
+        this.invincible = true;
+        this.deathAnimation = 0;
+        this.respawnTime = 0;
+        
+        Utils.showMessage(`✨ ${this.name} reviveu! Invencível por 3 segundos!`, 2000);
+    }
+    
+    canMoveTo(x, y, game) {
+        const tileX = Math.floor(x);
+        const tileY = Math.floor(y);
+        
+        if (tileX < 0 || tileX >= CONFIG.MAP_WIDTH || tileY < 0 || tileY >= CONFIG.MAP_HEIGHT) {
+            return false;
+        }
+        
+        const tile = game.map[tileY][tileX];
+        
+        if (this.ability === 'breakObstacles' && (tile === 1 || tile === 2)) {
+            game.map[tileY][tileX] = 0;
+            return true;
+        }
+        
+        if (this.ability === 'passThroughSmall' && (tile === 1 || tile === 2)) {
+            return true;
+        }
+        
+        const blockingTiles = [1, 3];
+        return !blockingTiles.includes(tile);
+    }
+    
+    useAbility() {
+        if (this.specialCooldown > 0 || this.isDead) return;
+        
+        this.isUsingAbility = true;
+        this.specialCooldown = 120;
+        
+        setTimeout(() => {
+            this.isUsingAbility = false;
+        }, 500);
+        
+        Utils.showMessage(`✨ ${this.name} usou habilidade especial!`, 1000);
+    }
+    
+    interactWithChickens(game) {
+        if (this.isDead) return;
+        
+        for (let chicken of game.cagedChickens) {
+            if (!chicken.rescued && Utils.checkCollision(this, chicken)) {
+                this.rescueProgress += 1;
+                
+                if (this.rescueProgress >= 100) {
+                    chicken.rescued = true;
+                    game.score += CONFIG.SCORES.RESCUE_CHICKEN;
+                    this.rescueProgress = 0;
+                    Utils.showMessage(`🐔 Galinha libertada! +${CONFIG.SCORES.RESCUE_CHICKEN} pontos`, 1500);
+                }
+                break;
+            }
+        }
+    }
+    
+    draw(ctx, tileSize) {
+        if (this.isDead) {
+            if (this.deathAnimation < 30 && this.lives > 0) {
+                ctx.globalAlpha = 0.5;
+                const x = this.x * tileSize - tileSize/2;
+                const y = this.y * tileSize - tileSize/2;
+                ctx.fillStyle = '#FF0000';
+                ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `${tileSize}px monospace`;
+                ctx.fillText("💀", x + tileSize/2 - 8, y + tileSize/2 + 8);
+            } else if (this.lives <= 0) {
+                ctx.globalAlpha = 0.3;
+                const x = this.x * tileSize - tileSize/2;
+                const y = this.y * tileSize - tileSize/2;
+                ctx.fillStyle = '#666666';
+                ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = `${tileSize}px monospace`;
+                ctx.fillText("👻", x + tileSize/2 - 8, y + tileSize/2 + 8);
+            }
+            ctx.globalAlpha = 1;
+            return;
+        }
+        
+        const x = this.x * tileSize - tileSize/2;
+        const y = this.y * tileSize - tileSize/2;
+        const isRPI = window.isRaspberryPi && window.isRaspberryPi();
+        
+        if (this.invincible && (Date.now() % 200 < 100)) {
+            ctx.globalAlpha = 0.5;
+        }
+        
+        if (isRPI) {
+            ctx.fillStyle = this.color;
+            ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+            ctx.fillStyle = '#FFA500';
+            ctx.fillRect(x + tileSize - 8, y + tileSize/2 - 3, 6, 6);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(x + tileSize - 12, y + tileSize/2 - 2, 3, 3);
+        } else {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(x + tileSize/2, y + tileSize - 5, tileSize/3, tileSize/6, 0, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(x + tileSize/2, y + tileSize/2, tileSize/3, tileSize/2.5, 0, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.moveTo(x + tileSize/1.5, y + tileSize/2);
+            ctx.lineTo(x + tileSize/1.2, y + tileSize/2);
+            ctx.lineTo(x + tileSize/1.5, y + tileSize/1.8);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(x + tileSize/1.8, y + tileSize/2.5, 3, 0, Math.PI*2);
+            ctx.fill();
+        }
+        
+        ctx.globalAlpha = 1;
+        
+        if (this.rescueProgress > 0) {
+            const barWidth = tileSize - 10;
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(x + 5, y - 5, barWidth * (this.rescueProgress / 100), 3);
+        }
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = `bold ${Math.floor(tileSize / 3)}px monospace`;
+        ctx.fillText(`❤️ ${this.lives}`, x + 2, y - 8);
+        
+        ctx.fillStyle = '#FFD700';
+        ctx.font = `bold ${Math.floor(tileSize / 4)}px monospace`;
+        ctx.fillText(`P${this.playerId}`, x + tileSize - 15, y - 5);
     }
 }
 
-// Exporta funções para uso global
-window.Utils = {
-    checkCollision,
-    randomRange,
-    randomInt,
-    clamp,
-    showMessage,
-    animateElement,
-    saveProgress,
-    loadProgress,
-    isRaspberryPi,
-    optimizeForChrome
-};
+window.Player = Player;
+console.log("player.js carregado com sucesso!");
